@@ -96,7 +96,7 @@ class FirebaseTodoApp {
         this.requestAccessAgain.addEventListener('click', () => this.showAccessRequestForm());
         
         // File upload event listeners
-        this.fileBtn.addEventListener('click', () => this.fileInput.click());
+        this.fileBtn.addEventListener('click', () => this.triggerFileInput());
         this.fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
         this.removeFileBtn.addEventListener('click', () => this.removeFile());
         
@@ -278,20 +278,30 @@ class FirebaseTodoApp {
         this.signOut();
     }
     
+    triggerFileInput() {
+        // iOS Safari requires user gesture to trigger file input
+        this.fileInput.click();
+    }
+    
     handleFileSelect(event) {
         const file = event.target.files[0];
         if (!file) return;
         
-        // Validate file type
-        if (!file.type.startsWith('image/')) {
-            alert('Please select an image file.');
+        console.log('File selected:', file.name, file.type, file.size);
+        
+        // Validate file type (including HEIC for iOS)
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif'];
+        const isValidType = file.type.startsWith('image/') || validTypes.includes(file.type.toLowerCase());
+        
+        if (!isValidType) {
+            alert('Please select an image file (JPG, PNG, GIF, WebP, HEIC).');
             return;
         }
         
         // Validate file size (5MB max)
         const maxSize = 5 * 1024 * 1024; // 5MB
         if (file.size > maxSize) {
-            alert('File size must be less than 5MB.');
+            alert(`File size is ${(file.size / 1024 / 1024).toFixed(1)}MB. Please choose a file smaller than 5MB.`);
             return;
         }
         
@@ -301,8 +311,14 @@ class FirebaseTodoApp {
         const reader = new FileReader();
         reader.onload = (e) => {
             this.previewImg.src = e.target.result;
+            this.previewImg.style.display = 'block';
             this.fileName.textContent = file.name;
             this.filePreview.style.display = 'flex';
+            console.log('Preview loaded successfully');
+        };
+        reader.onerror = (e) => {
+            console.error('Error reading file:', e);
+            alert('Error reading the selected file. Please try again.');
         };
         reader.readAsDataURL(file);
     }

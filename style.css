@@ -9,6 +9,8 @@ body {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
     padding: 20px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 .container {
@@ -428,6 +430,9 @@ h1 {
     margin-left: 10px;
     cursor: pointer;
     transition: transform 0.2s ease;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
 }
 
 .todo-image:hover {
@@ -549,6 +554,80 @@ h1 {
         flex-direction: column;
     }
     
+    .todo-input-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    #todoInput {
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .file-upload-section {
+        width: 100%;
+    }
+    
+    .file-upload-btn {
+        width: 100%;
+        padding: 12px;
+        font-size: 16px;
+        -webkit-appearance: none;
+        appearance: none;
+        border-radius: 8px;
+    }
+    
+    #filePreview {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    #previewImg {
+        width: 120px;
+        height: 120px;
+        align-self: center;
+    }
+    
+    .todo-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 15px;
+    }
+    
+    .todo-content {
+        width: 100%;
+        order: 2;
+    }
+    
+    .todo-checkbox {
+        order: 1;
+        margin-right: 0;
+        align-self: flex-start;
+    }
+    
+    .todo-image {
+        width: 100%;
+        max-width: 200px;
+        height: auto;
+        margin-left: 0;
+        margin-top: 10px;
+        align-self: center;
+    }
+    
+    .creator-badge {
+        order: 3;
+        margin-left: 0;
+        align-self: flex-start;
+    }
+    
+    .delete-btn {
+        order: 4;
+        align-self: flex-end;
+        margin-top: 10px;
+    }
+    
     .stats {
         flex-direction: column;
         text-align: center;
@@ -557,5 +636,17 @@ h1 {
     
     .actions {
         flex-direction: column;
+    }
+    
+    /* Mobile modal improvements */
+    .modal-content {
+        max-width: 95%;
+        max-height: 95%;
+    }
+    
+    .close-modal {
+        top: 10px;
+        right: 20px;
+        font-size: 30px;
     }
 }
