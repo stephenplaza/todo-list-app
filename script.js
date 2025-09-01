@@ -812,29 +812,25 @@ class FirebaseTodoApp {
     }
     
     async getSummaryFromClaude() {
-        // For security, API key should be stored as an environment variable or secure config
         const apiKey = this.getClaudeApiKey();
         
         if (!apiKey) {
-            throw new Error('Claude API key not configured. Please set CLAUDE_API_KEY in your environment.');
+            throw new Error('Claude API key not configured. Please enter your API key when prompted.');
         }
         
         const todoText = this.formatTodosForClaude();
         
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
+        // Use local proxy server to avoid CORS issues
+        const proxyUrl = 'http://localhost:3001/api/claude';
+        
+        const response = await fetch(proxyUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'x-api-key': apiKey,
-                'anthropic-version': '2023-06-01'
             },
             body: JSON.stringify({
-                model: 'claude-3-sonnet-20240229',
-                max_tokens: 500,
-                messages: [{
-                    role: 'user',
-                    content: `Please provide a helpful summary and analysis of this todo list. Include insights about productivity patterns, priorities, and any recommendations:\n\n${todoText}`
-                }]
+                apiKey: apiKey,
+                todoText: todoText
             })
         });
         

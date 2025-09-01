@@ -1,0 +1,18 @@
+{
+  "name": "todo-list-app",
+  "version": "1.0.0",
+  "description": "A collaborative todo list app with Firebase and Claude AI integration",
+  "main": "index.html",
+  "scripts": {
+    "start": "python3 -m http.server 8080",
+    "proxy": "node proxy-server.js",
+    "dev": "npm run proxy & npm run start"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "node-fetch": "^2.6.7"
+  },
+  "author": "Stephen Plaza",
+  "license": "MIT"
+}
