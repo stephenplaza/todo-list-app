@@ -43,6 +43,12 @@ class FirebaseTodoApp {
         // Selected file
         this.selectedFile = null;
         
+        // Browser detection
+        this.isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        this.isChrome = /Chrome/.test(navigator.userAgent);
+        this.isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+        this.isIOSChrome = this.isIOS && this.isChrome;
+        
         this.loginBtn = document.getElementById('loginBtn');
         this.logoutBtn = document.getElementById('logoutBtn');
         this.logoutBtnPending = document.getElementById('logoutBtnPending');
@@ -95,8 +101,9 @@ class FirebaseTodoApp {
         this.cancelAccessRequest.addEventListener('click', () => this.cancelAccessRequestHandler());
         this.requestAccessAgain.addEventListener('click', () => this.showAccessRequestForm());
         
-        // File upload event listeners
-        this.fileBtn.addEventListener('click', () => this.triggerFileInput());
+        // File upload event listeners with iOS Chrome compatibility
+        this.fileBtn.addEventListener('click', (e) => this.triggerFileInput(e));
+        this.fileBtn.addEventListener('touchstart', (e) => this.triggerFileInput(e), { passive: true });
         this.fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
         this.removeFileBtn.addEventListener('click', () => this.removeFile());
         
@@ -278,9 +285,69 @@ class FirebaseTodoApp {
         this.signOut();
     }
     
-    triggerFileInput() {
-        // iOS Safari requires user gesture to trigger file input
-        this.fileInput.click();
+    triggerFileInput(event) {
+        // Prevent double firing
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        
+        console.log('Browser info:', {
+            isIOS: this.isIOS,
+            isChrome: this.isChrome,
+            isSafari: this.isSafari,
+            isIOSChrome: this.isIOSChrome,
+            userAgent: navigator.userAgent
+        });
+        
+        try {
+            if (this.isIOSChrome) {
+                // iOS Chrome approach - create a temporary overlay
+                console.log('Using iOS Chrome file input method');
+                
+                // Reset file input first
+                this.fileInput.value = '';
+                
+                // Create overlay approach
+                const overlay = document.createElement('input');
+                overlay.type = 'file';
+                overlay.accept = 'image/*,image/heic,image/heif';
+                overlay.capture = 'environment';
+                overlay.style.position = 'fixed';
+                overlay.style.top = '0';
+                overlay.style.left = '0';
+                overlay.style.width = '100%';
+                overlay.style.height = '100%';
+                overlay.style.opacity = '0';
+                overlay.style.zIndex = '9999';
+                
+                overlay.addEventListener('change', (e) => {
+                    this.handleFileSelect(e);
+                    document.body.removeChild(overlay);
+                });
+                
+                document.body.appendChild(overlay);
+                overlay.click();
+                
+                // Cleanup after 5 seconds if no file selected
+                setTimeout(() => {
+                    if (document.body.contains(overlay)) {
+                        document.body.removeChild(overlay);
+                    }
+                }, 5000);
+                
+            } else {
+                // Standard approach for Safari and other browsers
+                console.log('Using standard file input method');
+                this.fileInput.value = '';
+                this.fileInput.click();
+            }
+        } catch (error) {
+            console.error('Error triggering file input:', error);
+            // Ultimate fallback
+            this.fileInput.value = '';
+            this.fileInput.click();
+        }
     }
     
     handleFileSelect(event) {
