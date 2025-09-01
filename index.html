@@ -10,7 +10,19 @@
     <div class="container">
         <h1>My Todo List</h1>
         
-        <div class="input-section">
+        <!-- Authentication Section -->
+        <div class="auth-section">
+            <div id="loginSection">
+                <p>Sign in to add todos (anyone can read)</p>
+                <button id="loginBtn">Sign in with Google</button>
+            </div>
+            <div id="userSection" style="display: none;">
+                <span id="userInfo"></span>
+                <button id="logoutBtn">Sign Out</button>
+            </div>
+        </div>
+        
+        <div class="input-section" id="inputSection" style="display: none;">
             <input type="text" id="todoInput" placeholder="Add a new task..." maxlength="100">
             <button id="addBtn">Add</button>
         </div>
@@ -22,12 +34,56 @@
         
         <ul id="todoList"></ul>
         
-        <div class="actions">
+        <div class="actions" id="actionsSection" style="display: none;">
             <button id="clearCompleted">Clear Completed</button>
             <button id="clearAll">Clear All</button>
         </div>
     </div>
     
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDocs, onSnapshot, query, orderBy, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        
+        // Make Firebase available globally
+        window.firebase = { 
+            app: null, 
+            auth: null, 
+            db: null, 
+            provider: null,
+            // Firebase functions
+            signInWithPopup,
+            signOut,
+            onAuthStateChanged,
+            collection,
+            addDoc,
+            updateDoc,
+            deleteDoc,
+            doc,
+            getDocs,
+            onSnapshot,
+            query,
+            orderBy,
+            serverTimestamp
+        };
+        
+        // Firebase Configuration - Replace with your config
+        const firebaseConfig = {
+            apiKey: "your-api-key",
+            authDomain: "your-project-id.firebaseapp.com",
+            projectId: "your-project-id",
+            storageBucket: "your-project-id.appspot.com",
+            messagingSenderId: "your-messaging-sender-id",
+            appId: "your-app-id"
+        };
+        
+        // Initialize Firebase
+        window.firebase.app = initializeApp(firebaseConfig);
+        window.firebase.auth = getAuth();
+        window.firebase.db = getFirestore();
+        window.firebase.provider = new GoogleAuthProvider();
+    </script>
     <script src="script.js"></script>
 </body>
 </html>
