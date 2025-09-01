@@ -85,6 +85,180 @@ h1 {
     margin-left: 8px;
 }
 
+/* Access Request Form */
+#accessRequestSection {
+    margin-bottom: 20px;
+}
+
+.access-request-form {
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+}
+
+.access-request-form h3 {
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.access-request-form p {
+    margin-bottom: 15px;
+    color: #666;
+}
+
+#accessReason {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    margin-bottom: 15px;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+#accessReason:focus {
+    border-color: #667eea;
+}
+
+.form-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.form-buttons button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#submitAccessRequest {
+    background: #4caf50;
+    color: white;
+}
+
+#submitAccessRequest:hover {
+    background: #45a049;
+}
+
+#cancelAccessRequest {
+    background: #f44336;
+    color: white;
+}
+
+#cancelAccessRequest:hover {
+    background: #da190b;
+}
+
+/* Admin Panel */
+.admin-section {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.admin-section h3 {
+    margin-bottom: 15px;
+    color: #856404;
+    text-align: center;
+}
+
+.access-request-item {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+}
+
+.request-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.request-user {
+    font-weight: 500;
+    color: #333;
+}
+
+.request-date {
+    font-size: 12px;
+    color: #666;
+}
+
+.request-reason {
+    margin-bottom: 15px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    font-style: italic;
+}
+
+.request-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.approve-btn {
+    background: #4caf50;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.approve-btn:hover {
+    background: #45a049;
+}
+
+.deny-btn {
+    background: #f44336;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.deny-btn:hover {
+    background: #da190b;
+}
+
+#pendingSection p, #deniedSection p {
+    color: #666;
+    margin-bottom: 15px;
+}
+
+#requestAccessAgain {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+#requestAccessAgain:hover {
+    background: #5a67d8;
+}
+
 .input-section {
     display: flex;
     gap: 10px;

@@ -1,15 +1,24 @@
 class FirebaseTodoApp {
     constructor() {
         this.currentUser = null;
+        this.userPermissions = null;
         this.unsubscribe = null;
+        this.accessRequestsUnsubscribe = null;
         this.todos = [];
+        this.accessRequests = [];
+        this.ADMIN_EMAIL = 'plaza.stephen@gmail.com'; // Admin email
         
         // DOM elements
         this.loginSection = document.getElementById('loginSection');
         this.userSection = document.getElementById('userSection');
+        this.pendingSection = document.getElementById('pendingSection');
+        this.deniedSection = document.getElementById('deniedSection');
         this.userInfo = document.getElementById('userInfo');
         this.inputSection = document.getElementById('inputSection');
         this.actionsSection = document.getElementById('actionsSection');
+        this.accessRequestSection = document.getElementById('accessRequestSection');
+        this.adminPanel = document.getElementById('adminPanel');
+        
         this.todoInput = document.getElementById('todoInput');
         this.addBtn = document.getElementById('addBtn');
         this.todoList = document.getElementById('todoList');
@@ -17,8 +26,17 @@ class FirebaseTodoApp {
         this.completedTasks = document.getElementById('completedTasks');
         this.clearCompleted = document.getElementById('clearCompleted');
         this.clearAll = document.getElementById('clearAll');
+        
         this.loginBtn = document.getElementById('loginBtn');
         this.logoutBtn = document.getElementById('logoutBtn');
+        this.logoutBtnPending = document.getElementById('logoutBtnPending');
+        this.logoutBtnDenied = document.getElementById('logoutBtnDenied');
+        
+        this.accessReason = document.getElementById('accessReason');
+        this.submitAccessRequest = document.getElementById('submitAccessRequest');
+        this.cancelAccessRequest = document.getElementById('cancelAccessRequest');
+        this.requestAccessAgain = document.getElementById('requestAccessAgain');
+        this.accessRequestsList = document.getElementById('accessRequestsList');
         
         this.init();
     }
@@ -45,6 +63,9 @@ class FirebaseTodoApp {
     setupEventListeners() {
         this.loginBtn.addEventListener('click', () => this.signIn());
         this.logoutBtn.addEventListener('click', () => this.signOut());
+        this.logoutBtnPending.addEventListener('click', () => this.signOut());
+        this.logoutBtnDenied.addEventListener('click', () => this.signOut());
+        
         this.addBtn.addEventListener('click', () => this.addTodo());
         this.todoInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -53,25 +74,114 @@ class FirebaseTodoApp {
         });
         this.clearCompleted.addEventListener('click', () => this.clearCompletedTodos());
         this.clearAll.addEventListener('click', () => this.clearAllTodos());
+        
+        this.submitAccessRequest.addEventListener('click', () => this.submitAccessRequestHandler());
+        this.cancelAccessRequest.addEventListener('click', () => this.cancelAccessRequestHandler());
+        this.requestAccessAgain.addEventListener('click', () => this.showAccessRequestForm());
     }
     
-    handleAuthStateChange(user) {
+    async handleAuthStateChange(user) {
         this.currentUser = user;
         
         if (user) {
-            // User is signed in
-            this.loginSection.style.display = 'none';
-            this.userSection.style.display = 'flex';
-            this.inputSection.style.display = 'flex';
-            this.actionsSection.style.display = 'flex';
-            this.userInfo.textContent = `Welcome, ${user.displayName || user.email}`;
+            // Check user permissions
+            await this.checkUserPermissions();
+            
+            if (this.isAdmin()) {
+                // Admin sees everything + admin panel
+                this.showAdminInterface();
+                this.loadAccessRequests();
+            } else if (this.userPermissions?.status === 'approved') {
+                // Approved user sees normal interface
+                this.showApprovedInterface();
+            } else if (this.userPermissions?.status === 'pending') {
+                // Pending user sees pending message
+                this.showPendingInterface();
+            } else if (this.userPermissions?.status === 'denied') {
+                // Denied user sees denied message with option to request again
+                this.showDeniedInterface();
+            } else {
+                // New user with no permissions - show access request form
+                this.showAccessRequestForm();
+            }
         } else {
-            // User is signed out
-            this.loginSection.style.display = 'block';
-            this.userSection.style.display = 'none';
-            this.inputSection.style.display = 'none';
-            this.actionsSection.style.display = 'none';
+            // User is signed out - show login
+            this.showLoginInterface();
         }
+    }
+    
+    async checkUserPermissions() {
+        if (!this.currentUser) return;
+        
+        try {
+            const permissionsQuery = window.firebase.query(
+                window.firebase.collection(window.firebase.db, 'userPermissions'),
+                window.firebase.where('uid', '==', this.currentUser.uid)
+            );
+            const permissionsSnapshot = await window.firebase.getDocs(permissionsQuery);
+            
+            if (!permissionsSnapshot.empty) {
+                this.userPermissions = permissionsSnapshot.docs[0].data();
+            } else {
+                this.userPermissions = null;
+            }
+        } catch (error) {
+            console.error('Error checking user permissions:', error);
+            this.userPermissions = null;
+        }
+    }
+    
+    isAdmin() {
+        return this.currentUser?.email === this.ADMIN_EMAIL;
+    }
+    
+    showLoginInterface() {
+        this.hideAllSections();
+        this.loginSection.style.display = 'block';
+    }
+    
+    showApprovedInterface() {
+        this.hideAllSections();
+        this.userSection.style.display = 'flex';
+        this.inputSection.style.display = 'flex';
+        this.actionsSection.style.display = 'flex';
+        this.userInfo.textContent = `Welcome, ${this.currentUser.displayName || this.currentUser.email}`;
+    }
+    
+    showAdminInterface() {
+        this.hideAllSections();
+        this.userSection.style.display = 'flex';
+        this.inputSection.style.display = 'flex';
+        this.actionsSection.style.display = 'flex';
+        this.adminPanel.style.display = 'block';
+        this.userInfo.innerHTML = `Welcome, ${this.currentUser.displayName || this.currentUser.email} <span style="color: #ff6b6b; font-weight: bold;">[ADMIN]</span>`;
+    }
+    
+    showPendingInterface() {
+        this.hideAllSections();
+        this.pendingSection.style.display = 'block';
+    }
+    
+    showDeniedInterface() {
+        this.hideAllSections();
+        this.deniedSection.style.display = 'block';
+    }
+    
+    showAccessRequestForm() {
+        this.hideAllSections();
+        this.accessRequestSection.style.display = 'block';
+        this.accessReason.value = '';
+    }
+    
+    hideAllSections() {
+        this.loginSection.style.display = 'none';
+        this.userSection.style.display = 'none';
+        this.pendingSection.style.display = 'none';
+        this.deniedSection.style.display = 'none';
+        this.inputSection.style.display = 'none';
+        this.actionsSection.style.display = 'none';
+        this.accessRequestSection.style.display = 'none';
+        this.adminPanel.style.display = 'none';
     }
     
     async signIn() {
@@ -90,6 +200,55 @@ class FirebaseTodoApp {
             console.error('Sign out failed:', error);
             alert('Sign out failed: ' + error.message);
         }
+    }
+    
+    async submitAccessRequestHandler() {
+        const reason = this.accessReason.value.trim();
+        if (!reason) {
+            alert('Please provide a reason for requesting access.');
+            return;
+        }
+        
+        try {
+            // Create access request
+            await window.firebase.addDoc(
+                window.firebase.collection(window.firebase.db, 'accessRequests'), 
+                {
+                    uid: this.currentUser.uid,
+                    email: this.currentUser.email,
+                    displayName: this.currentUser.displayName || this.currentUser.email,
+                    reason: reason,
+                    status: 'pending',
+                    requestedAt: window.firebase.serverTimestamp(),
+                    reviewedAt: null,
+                    reviewedBy: null
+                }
+            );
+            
+            // Create user permissions record
+            await window.firebase.addDoc(
+                window.firebase.collection(window.firebase.db, 'userPermissions'),
+                {
+                    uid: this.currentUser.uid,
+                    email: this.currentUser.email,
+                    status: 'pending',
+                    createdAt: window.firebase.serverTimestamp(),
+                    updatedAt: window.firebase.serverTimestamp()
+                }
+            );
+            
+            this.userPermissions = { status: 'pending' };
+            this.showPendingInterface();
+            
+        } catch (error) {
+            console.error('Error submitting access request:', error);
+            alert('Failed to submit access request: ' + error.message);
+        }
+    }
+    
+    cancelAccessRequestHandler() {
+        this.showLoginInterface();
+        this.signOut();
     }
     
     loadTodos() {
@@ -111,9 +270,137 @@ class FirebaseTodoApp {
         });
     }
     
+    loadAccessRequests() {
+        if (!this.isAdmin()) return;
+        
+        const requestsRef = window.firebase.collection(window.firebase.db, 'accessRequests');
+        const q = window.firebase.query(requestsRef, window.firebase.orderBy('requestedAt', 'desc'));
+        
+        this.accessRequestsUnsubscribe = window.firebase.onSnapshot(q, (snapshot) => {
+            this.accessRequests = [];
+            snapshot.forEach((doc) => {
+                this.accessRequests.push({
+                    id: doc.id,
+                    ...doc.data()
+                });
+            });
+            this.renderAccessRequests();
+        }, (error) => {
+            console.error('Error loading access requests:', error);
+        });
+    }
+    
+    renderAccessRequests() {
+        if (!this.isAdmin()) return;
+        
+        this.accessRequestsList.innerHTML = '';
+        
+        const pendingRequests = this.accessRequests.filter(req => req.status === 'pending');
+        
+        if (pendingRequests.length === 0) {
+            this.accessRequestsList.innerHTML = '<p style="text-align: center; color: #666;">No pending access requests.</p>';
+            return;
+        }
+        
+        pendingRequests.forEach(request => {
+            const div = document.createElement('div');
+            div.className = 'access-request-item';
+            
+            const requestDate = request.requestedAt ? 
+                new Date(request.requestedAt.seconds * 1000).toLocaleDateString() : 
+                'Unknown';
+            
+            div.innerHTML = `
+                <div class="request-header">
+                    <span class="request-user">${this.escapeHtml(request.displayName)}</span>
+                    <span class="request-date">${requestDate}</span>
+                </div>
+                <div class="request-reason">"${this.escapeHtml(request.reason)}"</div>
+                <div class="request-actions">
+                    <button class="approve-btn" onclick="todoApp.approveRequest('${request.id}', '${request.uid}')">Approve</button>
+                    <button class="deny-btn" onclick="todoApp.denyRequest('${request.id}', '${request.uid}')">Deny</button>
+                </div>
+            `;
+            
+            this.accessRequestsList.appendChild(div);
+        });
+    }
+    
+    async approveRequest(requestId, uid) {
+        try {
+            // Update access request
+            await window.firebase.updateDoc(
+                window.firebase.doc(window.firebase.db, 'accessRequests', requestId),
+                {
+                    status: 'approved',
+                    reviewedAt: window.firebase.serverTimestamp(),
+                    reviewedBy: this.currentUser.email
+                }
+            );
+            
+            // Update user permissions
+            const permissionsQuery = window.firebase.query(
+                window.firebase.collection(window.firebase.db, 'userPermissions'),
+                window.firebase.where('uid', '==', uid)
+            );
+            const permissionsSnapshot = await window.firebase.getDocs(permissionsQuery);
+            
+            if (!permissionsSnapshot.empty) {
+                const permissionDoc = permissionsSnapshot.docs[0];
+                await window.firebase.updateDoc(
+                    window.firebase.doc(window.firebase.db, 'userPermissions', permissionDoc.id),
+                    {
+                        status: 'approved',
+                        updatedAt: window.firebase.serverTimestamp()
+                    }
+                );
+            }
+            
+        } catch (error) {
+            console.error('Error approving request:', error);
+            alert('Failed to approve request: ' + error.message);
+        }
+    }
+    
+    async denyRequest(requestId, uid) {
+        try {
+            // Update access request
+            await window.firebase.updateDoc(
+                window.firebase.doc(window.firebase.db, 'accessRequests', requestId),
+                {
+                    status: 'denied',
+                    reviewedAt: window.firebase.serverTimestamp(),
+                    reviewedBy: this.currentUser.email
+                }
+            );
+            
+            // Update user permissions
+            const permissionsQuery = window.firebase.query(
+                window.firebase.collection(window.firebase.db, 'userPermissions'),
+                window.firebase.where('uid', '==', uid)
+            );
+            const permissionsSnapshot = await window.firebase.getDocs(permissionsQuery);
+            
+            if (!permissionsSnapshot.empty) {
+                const permissionDoc = permissionsSnapshot.docs[0];
+                await window.firebase.updateDoc(
+                    window.firebase.doc(window.firebase.db, 'userPermissions', permissionDoc.id),
+                    {
+                        status: 'denied',
+                        updatedAt: window.firebase.serverTimestamp()
+                    }
+                );
+            }
+            
+        } catch (error) {
+            console.error('Error denying request:', error);
+            alert('Failed to deny request: ' + error.message);
+        }
+    }
+    
     async addTodo() {
-        if (!this.currentUser) {
-            alert('Please sign in to add todos');
+        if (!this.currentUser || (!this.isAdmin() && this.userPermissions?.status !== 'approved')) {
+            alert('You need approval to add todos');
             return;
         }
         
@@ -145,8 +432,8 @@ class FirebaseTodoApp {
     }
     
     async toggleTodo(id, completed) {
-        if (!this.currentUser) {
-            alert('Please sign in to modify todos');
+        if (!this.currentUser || (!this.isAdmin() && this.userPermissions?.status !== 'approved')) {
+            alert('You need approval to modify todos');
             return;
         }
         
@@ -167,8 +454,8 @@ class FirebaseTodoApp {
             return;
         }
         
-        // Only allow the creator to delete their own todos
-        if (createdBy.uid !== this.currentUser.uid) {
+        // Admin can delete any todo, others can only delete their own
+        if (!this.isAdmin() && createdBy.uid !== this.currentUser.uid) {
             alert('You can only delete your own todos');
             return;
         }
@@ -183,15 +470,15 @@ class FirebaseTodoApp {
     }
     
     async clearCompletedTodos() {
-        if (!this.currentUser) {
-            alert('Please sign in to clear todos');
+        if (!this.currentUser || (!this.isAdmin() && this.userPermissions?.status !== 'approved')) {
+            alert('You need approval to clear todos');
             return;
         }
         
         try {
-            const completedTodos = this.todos.filter(todo => 
-                todo.completed && todo.createdBy.uid === this.currentUser.uid
-            );
+            const completedTodos = this.isAdmin() 
+                ? this.todos.filter(todo => todo.completed)
+                : this.todos.filter(todo => todo.completed && todo.createdBy.uid === this.currentUser.uid);
             
             const deletePromises = completedTodos.map(todo => {
                 const todoRef = window.firebase.doc(window.firebase.db, 'todos', todo.id);
@@ -206,16 +493,22 @@ class FirebaseTodoApp {
     }
     
     async clearAllTodos() {
-        if (!this.currentUser) {
-            alert('Please sign in to clear todos');
+        if (!this.currentUser || (!this.isAdmin() && this.userPermissions?.status !== 'approved')) {
+            alert('You need approval to clear todos');
             return;
         }
         
-        const userTodos = this.todos.filter(todo => todo.createdBy.uid === this.currentUser.uid);
+        const userTodos = this.isAdmin() 
+            ? this.todos
+            : this.todos.filter(todo => todo.createdBy.uid === this.currentUser.uid);
         
         if (userTodos.length === 0) return;
         
-        if (confirm(`Are you sure you want to clear all your ${userTodos.length} todos?`)) {
+        const confirmMessage = this.isAdmin() 
+            ? `Are you sure you want to clear ALL ${userTodos.length} todos? (Admin action)`
+            : `Are you sure you want to clear all your ${userTodos.length} todos?`;
+        
+        if (confirm(confirmMessage)) {
             try {
                 const deletePromises = userTodos.map(todo => {
                     const todoRef = window.firebase.doc(window.firebase.db, 'todos', todo.id);
@@ -238,19 +531,21 @@ class FirebaseTodoApp {
             li.className = `todo-item ${todo.completed ? 'completed' : ''}`;
             
             const isOwnTodo = this.currentUser && todo.createdBy.uid === this.currentUser.uid;
+            const canModify = this.currentUser && (this.isAdmin() || this.userPermissions?.status === 'approved');
+            const canDelete = this.currentUser && (this.isAdmin() || isOwnTodo);
             const creatorName = todo.createdBy.displayName || todo.createdBy.email;
             
             li.innerHTML = `
-                <input type="checkbox" class="todo-checkbox" ${todo.completed ? 'checked' : ''} ${!this.currentUser ? 'disabled' : ''}>
+                <input type="checkbox" class="todo-checkbox" ${todo.completed ? 'checked' : ''} ${!canModify ? 'disabled' : ''}>
                 <span class="todo-text">${this.escapeHtml(todo.text)}</span>
                 <span class="creator-badge">${this.escapeHtml(creatorName)}</span>
-                ${isOwnTodo ? '<button class="delete-btn">Delete</button>' : ''}
+                ${canDelete ? '<button class="delete-btn">Delete</button>' : ''}
             `;
             
             const checkbox = li.querySelector('.todo-checkbox');
             const deleteBtn = li.querySelector('.delete-btn');
             
-            if (this.currentUser) {
+            if (canModify) {
                 checkbox.addEventListener('change', () => this.toggleTodo(todo.id, todo.completed));
             }
             
@@ -279,7 +574,10 @@ class FirebaseTodoApp {
     }
 }
 
+// Global instance for admin functions
+let todoApp;
+
 // Initialize app when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    new FirebaseTodoApp();
+    todoApp = new FirebaseTodoApp();
 });

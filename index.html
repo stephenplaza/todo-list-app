@@ -20,6 +20,36 @@
                 <span id="userInfo"></span>
                 <button id="logoutBtn">Sign Out</button>
             </div>
+            <div id="pendingSection" style="display: none;">
+                <p id="pendingMessage">Your access request is pending approval.</p>
+                <button id="logoutBtnPending">Sign Out</button>
+            </div>
+            <div id="deniedSection" style="display: none;">
+                <p>Your access request has been denied. You can still view todos.</p>
+                <button id="requestAccessAgain">Request Access Again</button>
+                <button id="logoutBtnDenied">Sign Out</button>
+            </div>
+        </div>
+        
+        <!-- Access Request Form -->
+        <div id="accessRequestSection" style="display: none;">
+            <div class="access-request-form">
+                <h3>Request Access to Add Todos</h3>
+                <p>Please provide a reason for requesting access:</p>
+                <textarea id="accessReason" placeholder="Why do you need access to add todos?" rows="3" maxlength="200"></textarea>
+                <div class="form-buttons">
+                    <button id="submitAccessRequest">Submit Request</button>
+                    <button id="cancelAccessRequest">Cancel</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Admin Panel -->
+        <div id="adminPanel" style="display: none;">
+            <div class="admin-section">
+                <h3>Admin Panel - Access Requests</h3>
+                <div id="accessRequestsList"></div>
+            </div>
         </div>
         
         <div class="input-section" id="inputSection" style="display: none;">
@@ -44,7 +74,7 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDocs, onSnapshot, query, orderBy, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDocs, onSnapshot, query, orderBy, where, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
         
         // Make Firebase available globally
         window.firebase = { 
@@ -65,6 +95,7 @@
             onSnapshot,
             query,
             orderBy,
+            where,
             serverTimestamp
         };
         
