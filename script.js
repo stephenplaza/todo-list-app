@@ -27,6 +27,22 @@ class FirebaseTodoApp {
         this.clearCompleted = document.getElementById('clearCompleted');
         this.clearAll = document.getElementById('clearAll');
         
+        // File upload elements
+        this.fileInput = document.getElementById('fileInput');
+        this.fileBtn = document.getElementById('fileBtn');
+        this.filePreview = document.getElementById('filePreview');
+        this.previewImg = document.getElementById('previewImg');
+        this.removeFileBtn = document.getElementById('removeFile');
+        this.fileName = document.getElementById('fileName');
+        
+        // Image modal elements
+        this.imageModal = document.getElementById('imageModal');
+        this.modalImage = document.getElementById('modalImage');
+        this.closeModal = document.querySelector('.close-modal');
+        
+        // Selected file
+        this.selectedFile = null;
+        
         this.loginBtn = document.getElementById('loginBtn');
         this.logoutBtn = document.getElementById('logoutBtn');
         this.logoutBtnPending = document.getElementById('logoutBtnPending');
@@ -78,6 +94,17 @@ class FirebaseTodoApp {
         this.submitAccessRequest.addEventListener('click', () => this.submitAccessRequestHandler());
         this.cancelAccessRequest.addEventListener('click', () => this.cancelAccessRequestHandler());
         this.requestAccessAgain.addEventListener('click', () => this.showAccessRequestForm());
+        
+        // File upload event listeners
+        this.fileBtn.addEventListener('click', () => this.fileInput.click());
+        this.fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
+        this.removeFileBtn.addEventListener('click', () => this.removeFile());
+        
+        // Image modal event listeners
+        this.closeModal.addEventListener('click', () => this.closeImageModal());
+        this.imageModal.addEventListener('click', (e) => {
+            if (e.target === this.imageModal) this.closeImageModal();
+        });
     }
     
     async handleAuthStateChange(user) {
@@ -251,6 +278,53 @@ class FirebaseTodoApp {
         this.signOut();
     }
     
+    handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            alert('Please select an image file.');
+            return;
+        }
+        
+        // Validate file size (5MB max)
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        if (file.size > maxSize) {
+            alert('File size must be less than 5MB.');
+            return;
+        }
+        
+        this.selectedFile = file;
+        
+        // Show preview
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            this.previewImg.src = e.target.result;
+            this.fileName.textContent = file.name;
+            this.filePreview.style.display = 'flex';
+        };
+        reader.readAsDataURL(file);
+    }
+    
+    removeFile() {
+        this.selectedFile = null;
+        this.fileInput.value = '';
+        this.filePreview.style.display = 'none';
+        this.previewImg.src = '';
+        this.fileName.textContent = '';
+    }
+    
+    showImageModal(imageUrl) {
+        this.modalImage.src = imageUrl;
+        this.imageModal.style.display = 'block';
+    }
+    
+    closeImageModal() {
+        this.imageModal.style.display = 'none';
+        this.modalImage.src = '';
+    }
+    
     loadTodos() {
         // Set up real-time listener for todos
         const todosRef = window.firebase.collection(window.firebase.db, 'todos');
@@ -408,9 +482,25 @@ class FirebaseTodoApp {
         if (text === '') return;
         
         try {
+            let imageUrl = null;
+            
+            // Upload image if selected
+            if (this.selectedFile) {
+                const timestamp = Date.now();
+                const fileName = `${this.currentUser.uid}_${timestamp}_${this.selectedFile.name}`;
+                const storageRef = window.firebase.ref(window.firebase.storage, `todo-images/${fileName}`);
+                
+                // Upload file to Firebase Storage
+                await window.firebase.uploadBytes(storageRef, this.selectedFile);
+                
+                // Get download URL
+                imageUrl = await window.firebase.getDownloadURL(storageRef);
+            }
+            
             const todoData = {
                 text: text,
                 completed: false,
+                imageUrl: imageUrl,
                 createdAt: window.firebase.serverTimestamp(),
                 createdBy: {
                     uid: this.currentUser.uid,
@@ -424,7 +514,10 @@ class FirebaseTodoApp {
                 todoData
             );
             
+            // Reset form
             this.todoInput.value = '';
+            this.removeFile();
+            
         } catch (error) {
             console.error('Error adding todo:', error);
             alert('Failed to add todo: ' + error.message);
@@ -535,9 +628,14 @@ class FirebaseTodoApp {
             const canDelete = this.currentUser && (this.isAdmin() || isOwnTodo);
             const creatorName = todo.createdBy.displayName || todo.createdBy.email;
             
+            const hasImage = todo.imageUrl;
+            
             li.innerHTML = `
                 <input type="checkbox" class="todo-checkbox" ${todo.completed ? 'checked' : ''} ${!canModify ? 'disabled' : ''}>
-                <span class="todo-text">${this.escapeHtml(todo.text)}</span>
+                <div class="todo-content">
+                    <span class="todo-text ${hasImage ? 'todo-text-with-image' : ''}">${this.escapeHtml(todo.text)}</span>
+                    ${hasImage ? `<img src="${todo.imageUrl}" alt="Todo image" class="todo-image" onclick="todoApp.showImageModal('${todo.imageUrl}')">` : ''}
+                </div>
                 <span class="creator-badge">${this.escapeHtml(creatorName)}</span>
                 ${canDelete ? '<button class="delete-btn">Delete</button>' : ''}
             `;
