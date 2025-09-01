@@ -279,6 +279,11 @@ h1 {
     gap: 10px;
 }
 
+.upload-buttons {
+    display: flex;
+    gap: 10px;
+}
+
 .file-upload-btn {
     background: #28a745;
     color: white;
@@ -299,6 +304,32 @@ h1 {
 
 .file-upload-btn:hover {
     background: #218838;
+}
+
+.camera-upload-btn {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    -webkit-appearance: none;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+}
+
+.camera-upload-btn:hover {
+    background: #0056b3;
+}
+
+.file-upload-btn {
+    flex: 1;
 }
 
 #filePreview {

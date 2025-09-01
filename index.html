@@ -58,8 +58,12 @@
                 <button id="addBtn">Add</button>
             </div>
             <div class="file-upload-section">
-                <input type="file" id="fileInput" accept="image/*,image/heic,image/heif" capture="environment" style="display: none;" multiple="false">
-                <button type="button" id="fileBtn" class="file-upload-btn">📎 Add Image</button>
+                <input type="file" id="fileInput" accept="image/*,image/heic,image/heif" style="display: none;" multiple="false">
+                <input type="file" id="cameraInput" accept="image/*,image/heic,image/heif" capture="environment" style="display: none;" multiple="false">
+                <div class="upload-buttons">
+                    <button type="button" id="fileBtn" class="file-upload-btn">📎 Choose Photo</button>
+                    <button type="button" id="cameraBtn" class="camera-upload-btn">📷 Take Photo</button>
+                </div>
                 <div id="filePreview" style="display: none;">
                     <img id="previewImg" alt="Preview">
                     <button type="button" id="removeFile" class="remove-file-btn">✕</button>

@@ -29,7 +29,9 @@ class FirebaseTodoApp {
         
         // File upload elements
         this.fileInput = document.getElementById('fileInput');
+        this.cameraInput = document.getElementById('cameraInput');
         this.fileBtn = document.getElementById('fileBtn');
+        this.cameraBtn = document.getElementById('cameraBtn');
         this.filePreview = document.getElementById('filePreview');
         this.previewImg = document.getElementById('previewImg');
         this.removeFileBtn = document.getElementById('removeFile');
@@ -102,9 +104,12 @@ class FirebaseTodoApp {
         this.requestAccessAgain.addEventListener('click', () => this.showAccessRequestForm());
         
         // File upload event listeners with iOS Chrome compatibility
-        this.fileBtn.addEventListener('click', (e) => this.triggerFileInput(e));
-        this.fileBtn.addEventListener('touchstart', (e) => this.triggerFileInput(e), { passive: true });
+        this.fileBtn.addEventListener('click', (e) => this.triggerFileInput(e, 'gallery'));
+        this.fileBtn.addEventListener('touchstart', (e) => this.triggerFileInput(e, 'gallery'), { passive: true });
+        this.cameraBtn.addEventListener('click', (e) => this.triggerFileInput(e, 'camera'));
+        this.cameraBtn.addEventListener('touchstart', (e) => this.triggerFileInput(e, 'camera'), { passive: true });
         this.fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
+        this.cameraInput.addEventListener('change', (e) => this.handleFileSelect(e));
         this.removeFileBtn.addEventListener('click', () => this.removeFile());
         
         // Image modal event listeners
@@ -285,34 +290,38 @@ class FirebaseTodoApp {
         this.signOut();
     }
     
-    triggerFileInput(event) {
+    triggerFileInput(event, mode = 'gallery') {
         // Prevent double firing
         if (event) {
             event.preventDefault();
             event.stopPropagation();
         }
         
-        console.log('Browser info:', {
+        console.log('Triggering file input:', { mode, browser: {
             isIOS: this.isIOS,
             isChrome: this.isChrome,
             isSafari: this.isSafari,
-            isIOSChrome: this.isIOSChrome,
-            userAgent: navigator.userAgent
-        });
+            isIOSChrome: this.isIOSChrome
+        }});
+        
+        const inputToUse = mode === 'camera' ? this.cameraInput : this.fileInput;
+        const includeCapture = mode === 'camera';
         
         try {
             if (this.isIOSChrome) {
                 // iOS Chrome approach - create a temporary overlay
-                console.log('Using iOS Chrome file input method');
+                console.log(`Using iOS Chrome ${mode} input method`);
                 
                 // Reset file input first
-                this.fileInput.value = '';
+                inputToUse.value = '';
                 
                 // Create overlay approach
                 const overlay = document.createElement('input');
                 overlay.type = 'file';
                 overlay.accept = 'image/*,image/heic,image/heif';
-                overlay.capture = 'environment';
+                if (includeCapture) {
+                    overlay.capture = 'environment';
+                }
                 overlay.style.position = 'fixed';
                 overlay.style.top = '0';
                 overlay.style.left = '0';
@@ -338,15 +347,15 @@ class FirebaseTodoApp {
                 
             } else {
                 // Standard approach for Safari and other browsers
-                console.log('Using standard file input method');
-                this.fileInput.value = '';
-                this.fileInput.click();
+                console.log(`Using standard ${mode} input method`);
+                inputToUse.value = '';
+                inputToUse.click();
             }
         } catch (error) {
             console.error('Error triggering file input:', error);
             // Ultimate fallback
-            this.fileInput.value = '';
-            this.fileInput.click();
+            inputToUse.value = '';
+            inputToUse.click();
         }
     }
     
