@@ -82,6 +82,19 @@
         <div class="actions" id="actionsSection" style="display: none;">
             <button id="clearCompleted">Clear Completed</button>
             <button id="clearAll">Clear All</button>
+            <button id="summarizeBtn" class="claude-btn" style="display: none;">✨ Summarize with Claude</button>
+        </div>
+        
+        <!-- Claude Summary Modal -->
+        <div id="claudeModal" class="claude-modal" style="display: none;">
+            <div class="claude-modal-content">
+                <span class="claude-close">&times;</span>
+                <h3>📝 Todo List Summary</h3>
+                <div id="claudeSummary" class="claude-summary">
+                    <div class="loading">Analyzing your todo list with Claude...</div>
+                </div>
+                <button id="closeSummary" class="close-btn">Close</button>
+            </div>
         </div>
     </div>
     

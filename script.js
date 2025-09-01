@@ -42,6 +42,13 @@ class FirebaseTodoApp {
         this.modalImage = document.getElementById('modalImage');
         this.closeModal = document.querySelector('.close-modal');
         
+        // Claude modal elements
+        this.summarizeBtn = document.getElementById('summarizeBtn');
+        this.claudeModal = document.getElementById('claudeModal');
+        this.claudeSummary = document.getElementById('claudeSummary');
+        this.claudeClose = document.querySelector('.claude-close');
+        this.closeSummary = document.getElementById('closeSummary');
+        
         // Selected file
         this.selectedFile = null;
         
@@ -98,6 +105,18 @@ class FirebaseTodoApp {
         });
         this.clearCompleted.addEventListener('click', () => this.clearCompletedTodos());
         this.clearAll.addEventListener('click', () => this.clearAllTodos());
+        
+        // Claude modal event listeners
+        this.summarizeBtn.addEventListener('click', () => this.showClaudeSummary());
+        this.claudeClose.addEventListener('click', () => this.hideClaudeModal());
+        this.closeSummary.addEventListener('click', () => this.hideClaudeModal());
+        
+        // Close Claude modal when clicking outside
+        this.claudeModal.addEventListener('click', (e) => {
+            if (e.target === this.claudeModal) {
+                this.hideClaudeModal();
+            }
+        });
         
         this.submitAccessRequest.addEventListener('click', () => this.submitAccessRequestHandler());
         this.cancelAccessRequest.addEventListener('click', () => this.cancelAccessRequestHandler());
@@ -184,6 +203,7 @@ class FirebaseTodoApp {
         this.userSection.style.display = 'flex';
         this.inputSection.style.display = 'flex';
         this.actionsSection.style.display = 'flex';
+        this.summarizeBtn.style.display = 'inline-block';
         this.userInfo.textContent = `Welcome, ${this.currentUser.displayName || this.currentUser.email}`;
     }
     
@@ -192,6 +212,7 @@ class FirebaseTodoApp {
         this.userSection.style.display = 'flex';
         this.inputSection.style.display = 'flex';
         this.actionsSection.style.display = 'flex';
+        this.summarizeBtn.style.display = 'inline-block';
         this.adminPanel.style.display = 'block';
         this.userInfo.innerHTML = `Welcome, ${this.currentUser.displayName || this.currentUser.email} <span style="color: #ff6b6b; font-weight: bold;">[ADMIN]</span>`;
     }
@@ -221,6 +242,7 @@ class FirebaseTodoApp {
         this.actionsSection.style.display = 'none';
         this.accessRequestSection.style.display = 'none';
         this.adminPanel.style.display = 'none';
+        this.summarizeBtn.style.display = 'none';
     }
     
     async signIn() {
@@ -757,6 +779,128 @@ class FirebaseTodoApp {
         this.completedTasks.textContent = `Completed: ${completed}`;
     }
     
+    // Claude Integration Methods
+    async showClaudeSummary() {
+        if (!this.canAccessClaude()) {
+            alert('You need to be signed in and have permissions to use Claude summarization.');
+            return;
+        }
+        
+        this.claudeModal.style.display = 'block';
+        this.claudeSummary.innerHTML = '<div class="loading">Analyzing your todo list with Claude...</div>';
+        
+        try {
+            const summary = await this.getSummaryFromClaude();
+            this.claudeSummary.innerHTML = `<p>${summary}</p>`;
+        } catch (error) {
+            console.error('Claude API error:', error);
+            this.claudeSummary.innerHTML = `
+                <div style="color: #d73502; background: #fdf2f2; padding: 15px; border-radius: 5px; border: 1px solid #f5c6cb;">
+                    <strong>Error:</strong> ${error.message}<br>
+                    <small>Make sure you've set up your Claude API key. See console for more details.</small>
+                </div>
+            `;
+        }
+    }
+    
+    hideClaudeModal() {
+        this.claudeModal.style.display = 'none';
+    }
+    
+    canAccessClaude() {
+        return this.currentUser && (this.isAdmin() || this.userPermissions?.status === 'approved');
+    }
+    
+    async getSummaryFromClaude() {
+        // For security, API key should be stored as an environment variable or secure config
+        const apiKey = this.getClaudeApiKey();
+        
+        if (!apiKey) {
+            throw new Error('Claude API key not configured. Please set CLAUDE_API_KEY in your environment.');
+        }
+        
+        const todoText = this.formatTodosForClaude();
+        
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01'
+            },
+            body: JSON.stringify({
+                model: 'claude-3-sonnet-20240229',
+                max_tokens: 500,
+                messages: [{
+                    role: 'user',
+                    content: `Please provide a helpful summary and analysis of this todo list. Include insights about productivity patterns, priorities, and any recommendations:\n\n${todoText}`
+                }]
+            })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error?.message || `API request failed: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        return data.content[0].text;
+    }
+    
+    formatTodosForClaude() {
+        if (this.todos.length === 0) {
+            return 'No todos currently in the list.';
+        }
+        
+        let formatted = `Todo List Analysis (${this.todos.length} items):\n\n`;
+        
+        const completedTodos = this.todos.filter(t => t.completed);
+        const pendingTodos = this.todos.filter(t => !t.completed);
+        
+        formatted += `COMPLETED TASKS (${completedTodos.length}):\n`;
+        completedTodos.forEach((todo, index) => {
+            const creator = todo.createdBy ? ` (by ${todo.createdBy.displayName || todo.createdBy.email})` : '';
+            formatted += `${index + 1}. ✅ ${todo.text}${creator}\n`;
+        });
+        
+        formatted += `\nPENDING TASKS (${pendingTodos.length}):\n`;
+        pendingTodos.forEach((todo, index) => {
+            const creator = todo.createdBy ? ` (by ${todo.createdBy.displayName || todo.createdBy.email})` : '';
+            formatted += `${index + 1}. ⏳ ${todo.text}${creator}\n`;
+        });
+        
+        return formatted;
+    }
+    
+    getClaudeApiKey() {
+        // For a production app, this should come from a secure backend endpoint
+        // For demo purposes, you can temporarily set it here, but NEVER commit API keys to repos!
+        // Better approach would be to use environment variables or a backend proxy
+        
+        // Try to get from environment variable (won't work in browser, needs backend)
+        // return process.env.CLAUDE_API_KEY;
+        
+        // For demo - you would need to replace this with your actual key temporarily
+        // NEVER commit this to git! Add to .gitignore or use backend proxy
+        const apiKey = localStorage.getItem('claude_api_key');
+        
+        if (!apiKey) {
+            // Show instructions for setting up API key
+            const userApiKey = prompt(
+                'To use Claude summarization, please enter your Claude API key.\n\n' +
+                'Get your API key from: https://console.anthropic.com/\n\n' +
+                'Your key will be stored locally in your browser.'
+            );
+            
+            if (userApiKey) {
+                localStorage.setItem('claude_api_key', userApiKey);
+                return userApiKey;
+            }
+        }
+        
+        return apiKey;
+    }
+
     escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;
