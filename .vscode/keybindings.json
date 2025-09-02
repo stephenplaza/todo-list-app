@@ -1,0 +1,167 @@
+[
+  // Vim-style navigation and commands
+  {
+    "key": "ctrl+h",
+    "command": "workbench.action.focusLeftGroup",
+    "when": "!terminalFocus"
+  },
+  {
+    "key": "ctrl+j",
+    "command": "workbench.action.focusBelowGroup",
+    "when": "!terminalFocus"
+  },
+  {
+    "key": "ctrl+k",
+    "command": "workbench.action.focusAboveGroup",
+    "when": "!terminalFocus"
+  },
+  {
+    "key": "ctrl+l",
+    "command": "workbench.action.focusRightGroup",
+    "when": "!terminalFocus"
+  },
+  
+  // Quick file operations
+  {
+    "key": "space w",
+    "command": "workbench.action.files.save",
+    "when": "vim.mode == 'Normal'"
+  },
+  {
+    "key": "space q",
+    "command": "workbench.action.closeActiveEditor",
+    "when": "vim.mode == 'Normal'"
+  },
+  {
+    "key": "space e",
+    "command": "workbench.action.toggleSidebarVisibility",
+    "when": "vim.mode == 'Normal'"
+  },
+  {
+    "key": "space f",
+    "command": "workbench.action.quickOpen",
+    "when": "vim.mode == 'Normal'"
+  },
+  {
+    "key": "space p",
+    "command": "workbench.action.showCommands",
+    "when": "vim.mode == 'Normal'"
+  },
+  {
+    "key": "space t",
+    "command": "workbench.action.terminal.toggleTerminal",
+    "when": "vim.mode == 'Normal'"
+  },
+  {
+    "key": "space g",
+    "command": "workbench.view.scm",
+    "when": "vim.mode == 'Normal'"
+  },
+  
+  // Development shortcuts
+  {
+    "key": "space d s",
+    "command": "workbench.action.tasks.runTask",
+    "args": "Start Development Servers",
+    "when": "vim.mode == 'Normal'"
+  },
+  {
+    "key": "space d o",
+    "command": "workbench.action.tasks.runTask",
+    "args": "Open in Browser",
+    "when": "vim.mode == 'Normal'"
+  },
+  {
+    "key": "space d k",
+    "command": "workbench.action.tasks.runTask",
+    "args": "Kill All Servers",
+    "when": "vim.mode == 'Normal'"
+  },
+  
+  // Code formatting and linting
+  {
+    "key": "space l",
+    "command": "workbench.action.tasks.runTask",
+    "args": "Run ESLint",
+    "when": "vim.mode == 'Normal'"
+  },
+  {
+    "key": "space space",
+    "command": "workbench.action.tasks.runTask",
+    "args": "Format with Prettier",
+    "when": "vim.mode == 'Normal'"
+  },
+  
+  // Git operations
+  {
+    "key": "space g s",
+    "command": "git.stage",
+    "when": "vim.mode == 'Normal'"
+  },
+  {
+    "key": "space g c",
+    "command": "git.commit",
+    "when": "vim.mode == 'Normal'"
+  },
+  {
+    "key": "space g p",
+    "command": "git.push",
+    "when": "vim.mode == 'Normal'"
+  },
+  
+  // Debugging
+  {
+    "key": "space b",
+    "command": "editor.debug.action.toggleBreakpoint",
+    "when": "vim.mode == 'Normal'"
+  },
+  {
+    "key": "F5",
+    "command": "workbench.action.debug.start",
+    "when": "!inDebugMode"
+  },
+  {
+    "key": "F5",
+    "command": "workbench.action.debug.continue",
+    "when": "inDebugMode"
+  },
+  
+  // Terminal navigation (when in terminal)
+  {
+    "key": "ctrl+h",
+    "command": "workbench.action.terminal.focusNext",
+    "when": "terminalFocus"
+  },
+  {
+    "key": "ctrl+l",
+    "command": "workbench.action.terminal.focusPrevious",
+    "when": "terminalFocus"
+  },
+  {
+    "key": "escape",
+    "command": "workbench.action.focusActiveEditorGroup",
+    "when": "terminalFocus"
+  },
+  
+  // Panel management
+  {
+    "key": "space 1",
+    "command": "workbench.action.openEditorAtIndex1"
+  },
+  {
+    "key": "space 2",
+    "command": "workbench.action.openEditorAtIndex2"
+  },
+  {
+    "key": "space 3",
+    "command": "workbench.action.openEditorAtIndex3"
+  },
+  {
+    "key": "space 4",
+    "command": "workbench.action.openEditorAtIndex4"
+  },
+  {
+    "key": "space 5",
+    "command": "workbench.action.openEditorAtIndex5"
+  }
+]

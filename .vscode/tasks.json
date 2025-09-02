@@ -1,0 +1,220 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Start HTTP Server",
+      "type": "shell",
+      "command": "python3",
+      "args": ["-m", "http.server", "8080", "--bind", "127.0.0.1"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "new",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "isBackground": true,
+      "problemMatcher": [],
+      "options": {
+        "statusbar": {
+          "label": "$(globe) HTTP Server",
+          "hide": false
+        }
+      }
+    },
+    {
+      "label": "Start Claude Proxy",
+      "type": "shell",
+      "command": "python3",
+      "args": ["claude_proxy.py"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "new",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "isBackground": true,
+      "problemMatcher": [],
+      "options": {
+        "statusbar": {
+          "label": "$(cloud) Claude Proxy",
+          "hide": false
+        }
+      }
+    },
+    {
+      "label": "Start Development Servers",
+      "dependsOrder": "parallel",
+      "dependsOn": [
+        "Start HTTP Server",
+        "Start Claude Proxy"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": true
+      }
+    },
+    {
+      "label": "Open in Browser",
+      "type": "shell",
+      "command": "open",
+      "args": ["http://localhost:8080"],
+      "group": "build",
+      "presentation": {
+        "echo": false,
+        "reveal": "never",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Install ESLint",
+      "type": "shell",
+      "command": "npm",
+      "args": ["install", "--save-dev", "eslint", "@eslint/js"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      }
+    },
+    {
+      "label": "Install Prettier",
+      "type": "shell",
+      "command": "npm",
+      "args": ["install", "--save-dev", "prettier"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      }
+    },
+    {
+      "label": "Run ESLint",
+      "type": "shell",
+      "command": "npx",
+      "args": ["eslint", ".", "--ext", ".js"],
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": ["$eslint-stylish"]
+    },
+    {
+      "label": "Format with Prettier",
+      "type": "shell",
+      "command": "npx",
+      "args": ["prettier", "--write", "**/*.{js,html,css,md}", "!script.js.backup"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "silent",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      }
+    },
+    {
+      "label": "Setup Development Environment",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "Install ESLint",
+        "Install Prettier"
+      ],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": true
+      }
+    },
+    {
+      "label": "Full Development Start",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "Start Development Servers",
+        "Open in Browser"
+      ],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": true
+      }
+    },
+    {
+      "label": "Kill All Servers",
+      "type": "shell",
+      "command": "pkill",
+      "args": ["-f", "http.server|claude_proxy.py"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "silent",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      }
+    },
+    {
+      "label": "Git Commit and Push",
+      "type": "shell",
+      "command": "git",
+      "args": ["add", "-A", "&&", "git", "commit", "-m", "${input:commitMessage}", "&&", "git", "push"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "commitMessage",
+      "description": "Enter commit message",
+      "default": "Update code",
+      "type": "promptString"
+    }
+  ]
+}

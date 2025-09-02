@@ -1,0 +1,72 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Chrome with Local Server",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:8080",
+      "webRoot": "${workspaceFolder}",
+      "userDataDir": "${workspaceFolder}/.vscode/chrome-debug-profile",
+      "sourceMaps": true,
+      "trace": "verbose",
+      "runtimeExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+      "runtimeArgs": [
+        "--disable-web-security",
+        "--disable-features=VizDisplayCompositor",
+        "--user-data-dir=${workspaceFolder}/.vscode/chrome-debug-profile"
+      ]
+    },
+    {
+      "name": "Launch Firefox with Local Server",
+      "type": "firefox",
+      "request": "launch",
+      "url": "http://localhost:8080",
+      "webRoot": "${workspaceFolder}",
+      "firefoxExecutable": "/Applications/Firefox.app/Contents/MacOS/firefox"
+    },
+    {
+      "name": "Attach to Chrome",
+      "type": "chrome",
+      "request": "attach",
+      "port": 9222,
+      "webRoot": "${workspaceFolder}",
+      "urlFilter": "http://localhost:8080/*"
+    },
+    {
+      "name": "Debug Claude Proxy",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/claude_proxy.py",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "env": {},
+      "envFile": "${workspaceFolder}/.env",
+      "python": "python3"
+    },
+    {
+      "name": "Debug Current JS File",
+      "type": "node",
+      "request": "launch",
+      "name": "Launch Program",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${file}"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Launch Full Development Environment",
+      "configurations": [
+        "Launch Chrome with Local Server",
+        "Debug Claude Proxy"
+      ],
+      "preLaunchTask": "Start Development Servers",
+      "presentation": {
+        "hidden": false,
+        "group": "",
+        "order": 1
+      },
+      "stopAll": true
+    }
+  ]
+}

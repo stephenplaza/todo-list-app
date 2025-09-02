@@ -1,0 +1,49 @@
+{
+  "recommendations": [
+    // Essential Vim support
+    "vscodevim.vim",
+    
+    // JavaScript/Web development
+    "ms-vscode.vscode-typescript-next",
+    "bradlc.vscode-tailwindcss",
+    "ms-vscode.live-server",
+    "ritwick.open-in-browser",
+    
+    // Code formatting and linting
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    
+    // IntelliSense and navigation
+    "christian-kohler.path-intellisense",
+    "christian-kohler.npm-intellisense",
+    "formulahendry.auto-rename-tag",
+    
+    // Python support (for proxy server)
+    "ms-python.python",
+    
+    // Development utilities
+    "usernamehw.errorlens",
+    "oderwat.indent-rainbow",
+    "streetsidesoftware.code-spell-checker",
+    "gruntfuggly.todo-tree",
+    "ms-vscode.hexeditor",
+    
+    // Git integration
+    "mhutchie.git-graph",
+    "eamodio.gitlens",
+    
+    // Themes and appearance (optional)
+    "akamud.vscode-theme-onedark",
+    "PKief.material-icon-theme",
+    
+    // Additional utilities
+    "ms-vscode.vscode-json",
+    "redhat.vscode-yaml",
+    "ms-vscode.vscode-css-peek",
+    "bradlc.vscode-tailwindcss",
+    
+    // Live preview and debugging
+    "ms-vscode.vscode-chrome-debug-core",
+    "firefox-devtools.vscode-firefox-debug"
+  ]
+}
